@@ -14,7 +14,84 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      applications: {
+        Row: {
+          answers: Json
+          company_name: string | null
+          company_offering_id: string
+          created_at: string
+          id: string
+          status: string
+          tpo_response: Json | null
+          user_id: string
+        }
+        Insert: {
+          answers?: Json
+          company_name?: string | null
+          company_offering_id: string
+          created_at?: string
+          id?: string
+          status?: string
+          tpo_response?: Json | null
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          company_name?: string | null
+          company_offering_id?: string
+          created_at?: string
+          id?: string
+          status?: string
+          tpo_response?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tpo_credentials: {
+        Row: {
+          api_base: string
+          apply_path: string
+          companies_path: string
+          company_detail_path: string
+          created_at: string
+          cv_file_id: string | null
+          eps_tenant: string
+          eps_token: string
+          eps_uid: string
+          eps_userid_token: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          api_base?: string
+          apply_path?: string
+          companies_path?: string
+          company_detail_path?: string
+          created_at?: string
+          cv_file_id?: string | null
+          eps_tenant: string
+          eps_token: string
+          eps_uid: string
+          eps_userid_token?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          api_base?: string
+          apply_path?: string
+          companies_path?: string
+          company_detail_path?: string
+          created_at?: string
+          cv_file_id?: string | null
+          eps_tenant?: string
+          eps_token?: string
+          eps_uid?: string
+          eps_userid_token?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
