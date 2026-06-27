@@ -170,6 +170,9 @@ function CompanyOfferingPage() {
             </Card>
           )}
 
+          {stage === "details" && <DetailsExtras offering={data} />}
+
+
           {stage === "details" && (
             <div className="flex justify-end">
               <Button onClick={() => setStage("form")}>Apply now</Button>
@@ -268,5 +271,120 @@ function CompanySummary({ offering }: { offering: CompanyOffering }) {
         )}
       </CardContent>
     </Card>
+  );
+}
+
+function DetailsExtras({ offering }: { offering: CompanyOffering }) {
+  const meta: Array<[string, string | undefined]> = [
+    ["Offering code", offering.companyOfferingCode],
+    ["Company type", offering.companyType],
+    ["Industry", offering.industryType],
+    ["Token status", offering.tokenStatus],
+    ["Registration starts", offering.registrationStart],
+    ["Registration ends", offering.registrationDeadline],
+    ["Min package (LPA)", offering.minPackage != null ? String(offering.minPackage) : undefined],
+    ["Max package (LPA)", offering.maxPackage != null ? String(offering.maxPackage) : undefined],
+    ["Min stipend", offering.minStipend ? String(offering.minStipend) : undefined],
+    ["Max stipend", offering.maxStipend ? String(offering.maxStipend) : undefined],
+  ];
+  const metaRows = meta.filter(([, v]) => v && v !== "0");
+
+  return (
+    <>
+      {metaRows.length > 0 && (
+        <Card>
+          <CardHeader><CardTitle className="text-base">Offering details</CardTitle></CardHeader>
+          <CardContent className="grid gap-2 text-sm sm:grid-cols-2">
+            {metaRows.map(([k, v]) => (
+              <div key={k} className="flex justify-between gap-3 border-b py-1.5 last:border-0">
+                <span className="text-muted-foreground">{k}</span>
+                <span className="text-right font-medium">{v}</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {offering.selectionProcedure.length > 0 && (
+        <Card>
+          <CardHeader><CardTitle className="text-base">Selection procedure</CardTitle></CardHeader>
+          <CardContent className="p-0 overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50 text-left">
+                <tr>
+                  <th className="px-3 py-2 font-medium">#</th>
+                  <th className="px-3 py-2 font-medium">Round</th>
+                  <th className="px-3 py-2 font-medium">Date</th>
+                  <th className="px-3 py-2 font-medium">Final</th>
+                </tr>
+              </thead>
+              <tbody>
+                {offering.selectionProcedure.map((r, i) => (
+                  <tr key={i} className="border-t">
+                    <td className="px-3 py-2 text-muted-foreground">{r.roundNumber ?? i + 1}</td>
+                    <td className="px-3 py-2">{r.name}</td>
+                    <td className="px-3 py-2 text-muted-foreground">{r.date ?? "—"}</td>
+                    <td className="px-3 py-2">{r.isFinal ? <Badge>Final</Badge> : "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </CardContent>
+        </Card>
+      )}
+
+      {offering.jobDescription && offering.jobDescription.trim() !== "" && (
+        <Card>
+          <CardHeader><CardTitle className="text-base">Job description</CardTitle></CardHeader>
+          <CardContent>
+            <div
+              className="prose prose-sm max-w-none dark:prose-invert"
+              dangerouslySetInnerHTML={{ __html: offering.jobDescription }}
+            />
+          </CardContent>
+        </Card>
+      )}
+
+      {(offering.contactName || offering.contactEmail || offering.contactPhone || offering.inchargeFaculty) && (
+        <Card>
+          <CardHeader><CardTitle className="text-base">Contact</CardTitle></CardHeader>
+          <CardContent className="grid gap-2 text-sm sm:grid-cols-2">
+            {offering.contactName && <Field k="Person" v={offering.contactName} />}
+            {offering.contactEmail && <Field k="Email" v={offering.contactEmail} />}
+            {offering.contactPhone && <Field k="Phone" v={offering.contactPhone} />}
+            {offering.inchargeFaculty && <Field k="Incharge faculty" v={offering.inchargeFaculty} />}
+          </CardContent>
+        </Card>
+      )}
+
+      {offering.flags.some((f) => f.value) && (
+        <Card>
+          <CardHeader><CardTitle className="text-base">Policy flags</CardTitle></CardHeader>
+          <CardContent className="flex flex-wrap gap-2">
+            {offering.flags.map((f) => (
+              <Badge key={f.label} variant={f.value ? "default" : "outline"} className="gap-1">
+                {f.value ? "✓" : "✕"} {f.label}
+              </Badge>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      <details className="rounded-md border bg-card p-3 text-sm">
+        <summary className="cursor-pointer font-medium">Raw API response</summary>
+        <pre className="mt-2 max-h-96 overflow-auto rounded bg-muted p-3 text-xs">
+          {JSON.stringify(offering.raw, null, 2)}
+        </pre>
+      </details>
+    </>
+  );
+}
+
+function Field({ k, v }: { k: string; v: string }) {
+  return (
+    <div className="flex justify-between gap-3 border-b py-1.5 last:border-0">
+      <span className="text-muted-foreground">{k}</span>
+      <span className="text-right font-medium break-all">{v}</span>
+    </div>
   );
 }
