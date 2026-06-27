@@ -3,6 +3,7 @@ import type {
   DynamicQuestion,
   EligibilityCriterion,
   ResumeOption,
+  SelectionRound,
 } from "@/types/application";
 
 function isRecord(v: unknown): v is Record<string, unknown> {
@@ -220,19 +221,82 @@ export function parseOfferingInfo(data: unknown, fallbackOfferingId: number): Co
     })
     .filter((c) => c.id !== "");
 
+  // Selection procedure
+  const procRaw = pickArray(inner, ["selction_procedure", "selection_procedure", "selectionProcedure", "rounds"]);
+  const selectionProcedure: SelectionRound[] = procRaw.filter(isRecord).map((r) => ({
+    roundNumber: pickNumber(r, ["round_number", "roundNumber", "round"]),
+    name: pickString(r, ["companyround", "round_name", "name", "title"]) ?? "Round",
+    date: pickString(r, ["date", "round_date", "scheduled_at"]),
+    isFinal: pickBool(r, ["isfinal", "isFinal", "final"]),
+  }));
+
+  // Min/max package/stipend
+  const minPackage = pickNumber(offeringObj, ["minPackage", "min_package"]) ?? pickNumber(inner, ["minpackage", "min_package"]);
+  const maxPackage = pickNumber(offeringObj, ["maxPackage", "max_package"]) ?? pickNumber(inner, ["maxpackage", "max_package"]);
+  const minStipend = pickNumber(offeringObj, ["minStipend", "min_stipend"]) ?? pickNumber(inner, ["minstipend"]);
+  const maxStipend = pickNumber(offeringObj, ["maxStipend", "max_stipend"]) ?? pickNumber(inner, ["maxstipend"]);
+
+  const pkgDisplay = pkg ?? (minPackage != null && maxPackage != null
+    ? (minPackage === maxPackage ? `${minPackage} LPA` : `${minPackage}–${maxPackage} LPA`)
+    : undefined);
+
+  // Contact / faculty / JD / codes
+  const contactName = pickString(offeringObj, ["contact_person_name", "contactPersonName"]) ?? pickString(inner, ["contact_person_name"]);
+  const contactEmail = pickString(offeringObj, ["contact_email", "contactEmail"]) ?? pickString(inner, ["contact_email"]);
+  const contactPhone = pickString(offeringObj, ["contact_phone", "contactPhone"]) ?? pickString(inner, ["contact_phone"]);
+  const inchargeFaculty = pickString(inner, ["incharge_faculty", "inchargeFaculty"]);
+  const jobDescription = pickString(offeringObj, ["job_description", "jobDescription"]) ?? pickString(inner, ["job_description"]);
+  const companyOfferingCode = pickString(inner, ["companyofferingcode", "companyOfferingCode", "code"]) ?? pickString(offeringObj, ["companyofferingcode"]);
+  const companyType = pickString(inner, ["companytype", "companyType"]);
+  const industryType = pickString(inner, ["industrytype", "industryType"]);
+  const tokenStatus = pickString(inner, ["token_status", "tokenStatus"]);
+  const registrationStart = pickString(offeringObj, ["reg_start_date", "registrationStart"]);
+
+  // Boolean flags
+  const flagDefs: Array<[string, string[]]> = [
+    ["Live backlog allowed", ["is_live_backlog_allowed", "isLiveBacklogAllowed"]],
+    ["Dead backlog allowed", ["is_dead_backlog_allowed", "isDeadBacklogAllowed"]],
+    ["Placed students allowed", ["isplacedstudentallowed", "isPlacedStudentAllowed"]],
+    ["Year-down allowed", ["isyeardownallowed", "isYearDownAllowed"]],
+    ["Intern students allowed", ["isinternstudentallowed", "isInternStudentAllowed"]],
+    ["Higher studies allowed", ["ishigherstudiesallowed", "isHigherStudiesAllowed"]],
+    ["Offer compulsory acceptable", ["isoffercomplusaryacceptable", "isOfferCompulsaryAcceptable"]],
+    ["CV required", ["iscvrequired", "isCvRequired"]],
+  ];
+  const flags = flagDefs.map(([label, keys]) => ({
+    label,
+    value: pickBool(offeringObj, keys) || pickBool(inner, keys),
+  }));
+
   return {
     id: offeringId,
     companyName,
-    package: pkg,
+    companyOfferingCode,
+    package: pkgDisplay,
+    minPackage,
+    maxPackage,
+    minStipend,
+    maxStipend,
     placementType,
+    companyType,
+    industryType,
+    tokenStatus,
     locations,
+    registrationStart,
     registrationDeadline,
     hiringProcess,
+    jobDescription,
     degrees,
     programs,
     instructions,
     criteria,
     questions,
+    selectionProcedure,
+    contactName,
+    contactEmail,
+    contactPhone,
+    inchargeFaculty,
+    flags,
     isCvRequired,
     resumes,
     raw: data,
