@@ -170,6 +170,9 @@ function CompanyOfferingPage() {
             </Card>
           )}
 
+          {stage === "details" && <DetailsExtras offering={data} />}
+
+
           {stage === "details" && (
             <div className="flex justify-end">
               <Button onClick={() => setStage("form")}>Apply now</Button>
